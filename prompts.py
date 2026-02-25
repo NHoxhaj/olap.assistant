@@ -276,15 +276,16 @@ CHART TYPE SELECTION MATRIX:
    ```
 
 5. DISTRIBUTIONS & RANKINGS (Top N, Bottom N):
-   - Use px.barh() for horizontal ranking charts (easier to read)
+   - Use px.bar() with orientation='h' for horizontal ranking charts (easier to read)
+   - IMPORTANT: Do NOT use px.barh() - it does not exist in Plotly. Use px.bar() with orientation='h' instead.
    - Sort descending for top items
    - Pattern:
    ```
-   chart = px.barh(data, x='metric', y='category',
-                   orientation='h',
-                   title='Top 10 by Metric',
-                   color='metric',
-                   color_continuous_scale='Reds')
+   chart = px.bar(data, x='metric', y='category',
+                  orientation='h',
+                  title='Top 10 by Metric',
+                  color='metric',
+                  color_continuous_scale='Reds')
    chart.update_layout(height=500, showlegend=False)
    ```
 

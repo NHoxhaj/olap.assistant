@@ -64,6 +64,10 @@ st.set_page_config(page_title="OLAP Assistant", layout="wide", initial_sidebar_s
 # Custom CSS for better styling
 st.markdown("""
 <style>
+    /* Main page background */
+    .stApp {
+        background: linear-gradient(160deg, #f8f9ff 0%, #f0f2ff 30%, #e8ecff 60%, #f5f0ff 100%);
+    }
     .main-header {
         font-size: 3rem;
         font-weight: bold;
@@ -84,10 +88,157 @@ st.markdown("""
         border-radius: 0.5rem;
         border-left: 4px solid #667eea;
     }
+    /* Sidebar styling */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1a0a2e 0%, #2d1b69 40%, #1e1250 70%, #0f0a30 100%);
+    }
+    section[data-testid="stSidebar"] * {
+        color: #e0e0e0 !important;
+    }
+    section[data-testid="stSidebar"] .stMetric label {
+        color: #a0a0c0 !important;
+    }
+    section[data-testid="stSidebar"] .stMetric [data-testid="stMetricValue"] {
+        color: #ffffff !important;
+    }
+    section[data-testid="stSidebar"] hr {
+        border-color: rgba(255,255,255,0.1) !important;
+    }
+    section[data-testid="stSidebar"] button {
+        background: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        color: #ffffff !important;
+    }
+    section[data-testid="stSidebar"] button:hover {
+        background: rgba(255,255,255,0.2) !important;
+        border-color: rgba(255,255,255,0.35) !important;
+    }
+    section[data-testid="stSidebar"] button p {
+        color: #ffffff !important;
+    }
+    /* Welcome flow cards */
+    .flow-container {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0;
+        margin: 1.5rem 0;
+    }
+    .flow-card {
+        flex: 1;
+        padding: 2rem 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .flow-card-1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white !important;
+    }
+    .flow-card-2 {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white !important;
+    }
+    .flow-card-3 {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white !important;
+    }
+    .flow-card .flow-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .flow-card .flow-step {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .flow-card .flow-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+    .flow-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #667eea;
+        padding: 0 0.5rem;
+        min-width: 40px;
+    }
+    /* Chat input bar styling */
+    .stChatInput {
+        border-radius: 16px !important;
+        overflow: hidden;
+    }
+    .stChatInput > div {
+        background: linear-gradient(135deg, #667eea08 0%, #764ba208 100%) !important;
+        border: 2px solid #667eea40 !important;
+        border-radius: 16px !important;
+        padding: 0.6rem 0.75rem !important;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        min-height: 60px !important;
+    }
+    .stChatInput > div:focus-within {
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15), 0 4px 12px rgba(102, 126, 234, 0.1) !important;
+    }
+    .stChatInput textarea {
+        font-size: 1.15rem !important;
+        color: #333 !important;
+        line-height: 1.5 !important;
+    }
+    .stChatInput textarea::placeholder {
+        color: #999 !important;
+        font-style: italic !important;
+    }
+    .stChatInput button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        min-width: 42px !important;
+        min-height: 42px !important;
+        transition: opacity 0.2s ease, transform 0.2s ease !important;
+    }
+    .stChatInput button:hover {
+        opacity: 0.9 !important;
+        transform: scale(1.05) !important;
+    }
+    .stChatInput button svg {
+        fill: white !important;
+    }
+    /* Footer info boxes */
+    .info-box {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        height: 100%;
+        border: 1px solid #e0e5ec;
+    }
+    .info-box h3 {
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+        font-size: 1.15rem;
+    }
+    .info-box ul {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+    .info-box ul li {
+        padding: 0.25rem 0;
+        font-size: 0.95rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-header">📊 AI-Powered OLAP Assistant</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header"> AI-Powered OLAP Assistant</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Ask questions. Get insights. No SQL required.</div>', unsafe_allow_html=True)
 
 # Sidebar styling
@@ -255,22 +406,40 @@ elif db_tab == "Data Quality":
 # 4. Chat Interface
 # Welcome section when no messages yet
 if not st.session_state.messages:
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.info("🎯 **Start by asking questions about your data in natural language**")
-    with col2:
-        st.success("⚡ **AI generates code automatically**")
-    with col3:
-        st.warning("📊 **Visualizations created on the fly**")
+    st.markdown("""
+    <div class="flow-container">
+        <div class="flow-card flow-card-1">
+            <div class="flow-icon">💬</div>
+            <div class="flow-step">Step 1</div>
+            <div class="flow-title">Ask questions about your data in natural language</div>
+        </div>
+        <div class="flow-arrow">➜</div>
+        <div class="flow-card flow-card-2">
+            <div class="flow-icon">⚡</div>
+            <div class="flow-step">Step 2</div>
+            <div class="flow-title">AI generates code automatically</div>
+        </div>
+        <div class="flow-arrow">➜</div>
+        <div class="flow-card flow-card-3">
+            <div class="flow-icon">📊</div>
+            <div class="flow-step">Step 3</div>
+            <div class="flow-title">Visualizations created on the fly</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("### 🚀 Getting Started")
     st.markdown("""
-    **Try asking questions like:**
-    - Compare 2023 vs 2024 revenue by region
-    - Show top 5 countries by profit
-    - What percentage of revenue comes from each category?
-    """)
+    <div style="background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%); border-radius: 12px; padding: 1.5rem 2rem; border: 1px solid #667eea30;">
+        <h3 style="margin-top: 0;">🚀 Getting Started</h3>
+        <p style="margin-bottom: 0.75rem; font-size: 1.05rem;"><strong>Try asking questions like:</strong></p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="background: white; padding: 0.6rem 1rem; border-radius: 8px; border-left: 3px solid #667eea; font-size: 1rem;">⚖️ Compare 2023 vs 2024 revenue by region</div>
+            <div style="background: white; padding: 0.6rem 1rem; border-radius: 8px; border-left: 3px solid #f5576c; font-size: 1rem;">🏆 Show top 5 countries by profit</div>
+            <div style="background: white; padding: 0.6rem 1rem; border-radius: 8px; border-left: 3px solid #4facfe; font-size: 1rem;">📊 What percentage of revenue comes from each category?</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown("---")
 
 # Display chat history
@@ -544,27 +713,39 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown("""
-    ### 💡 Tips
-    - Use specific metrics (revenue, profit)
-    - Mention time periods (2024, Q4)
-    - Ask for comparisons or trends
-    """)
+    <div class="info-box">
+        <h3>💡 Tips</h3>
+        <ul>
+            <li>📌 Use specific metrics (revenue, profit)</li>
+            <li>📌 Mention time periods (2024, Q4)</li>
+            <li>📌 Ask for comparisons or trends</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col2:
     st.markdown("""
-    ### 📌 OLAP Operations
-    - **Slice**: Filter single dimension
-    - **Dice**: Filter multiple dimensions
-    - **Drill**: Break down hierarchies
-    - **Compare**: Contrast periods
-    """)
+    <div class="info-box">
+        <h3>📌 OLAP Operations</h3>
+        <ul>
+            <li>🔹 <strong>Slice</strong>: Filter single dimension</li>
+            <li>🔹 <strong>Dice</strong>: Filter multiple dimensions</li>
+            <li>🔹 <strong>Drill</strong>: Break down hierarchies</li>
+            <li>🔹 <strong>Compare</strong>: Contrast periods</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col3:
     st.markdown("""
-    ### ⚙️ Features
-    - ✅ Natural language queries
-    - ✅ Auto-visualizations
-    - ✅ CSV/JSON/Excel export
-    - ✅ Query caching & bookmarks
-    - ✅ Execution metrics
-    """)
+    <div class="info-box">
+        <h3>⚙️ Features</h3>
+        <ul>
+            <li>✅ Natural language queries</li>
+            <li>✅ Auto-visualizations</li>
+            <li>✅ CSV/JSON/Excel export</li>
+            <li>✅ Query caching & bookmarks</li>
+            <li>✅ Execution metrics</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
