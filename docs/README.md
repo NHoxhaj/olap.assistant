@@ -1,6 +1,6 @@
 # 📊 AI-Powered OLAP Assistant
 
-A Streamlit web application that uses Google's Gemini AI to translate natural language questions into Python code that performs OLAP (Online Analytical Processing) analysis on retail sales data, with automatic visualizations.
+A Streamlit web application that uses Anthropic's Claude AI to translate natural language questions into Python code that performs OLAP (Online Analytical Processing) analysis on retail sales data, with automatic visualizations.
 
 **Ask questions. Get insights. No SQL required.**
 
@@ -8,7 +8,7 @@ A Streamlit web application that uses Google's Gemini AI to translate natural la
 
 ✅ **Natural Language Analysis** - Ask business questions in plain English
 ✅ **OLAP Operations** - Slice, Dice, Group & Summarize, Drill-Down, Compare
-✅ **AI Code Generation** - Gemini AI generates Pandas code automatically
+✅ **AI Code Generation** - Claude AI generates Pandas code automatically
 ✅ **Interactive Visualizations** - Plotly charts for data exploration
 ✅ **Chat Interface** - Maintain conversation history with context
 ✅ **Error Handling** - Helpful guidance when queries fail
@@ -21,7 +21,7 @@ A Streamlit web application that uses Google's Gemini AI to translate natural la
 
 ### Prerequisites
 - Python 3.8+
-- Google Gemini API key (free tier available at [ai.google.dev](https://ai.google.dev))
+- Anthropic API key (available at [console.anthropic.com](https://console.anthropic.com))
 - 500MB disk space
 
 ### Installation
@@ -56,9 +56,9 @@ A Streamlit web application that uses Google's Gemini AI to translate natural la
 5. **Configure API key:**
    Create `.streamlit/secrets.toml`:
    ```toml
-   GOOGLE_API_KEY = "your_api_key_here"
+   ANTHROPIC_API_KEY = "your_api_key_here"
    ```
-   Get your free API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+   Get your API key from [Anthropic Console](https://console.anthropic.com)
 
 6. **Run the app:**
    ```bash
@@ -108,7 +108,7 @@ The app analyzes a global retail dataset with:
 
 ```
 App Flow:
-User Query → Gemini AI → Generated Python Code → Pandas Execution → Results Display
+User Query → Claude AI → Generated Python Code → Pandas Execution → Results Display
                       ↓
               (with code validation & safety checks)
 ```
@@ -116,18 +116,18 @@ User Query → Gemini AI → Generated Python Code → Pandas Execution → Resu
 ### Key Components
 
 - **app.py** - Main Streamlit application (UI, chat, execution)
-- **prompts.py** - Gemini system prompt with OLAP operation definitions
+- **prompts.py** - Claude system prompt with OLAP operation definitions
 - **data_utils.py** - Data loading and caching utilities
 - **generate_dataset.py** - Creates synthetic retail dataset
 
 ## Troubleshooting
 
-### "Error: GOOGLE_API_KEY not found"
+### "Error: ANTHROPIC_API_KEY not found"
 **Solution:** Create `.streamlit/secrets.toml` with your API key:
 ```toml
-GOOGLE_API_KEY = "your_key_here"
+ANTHROPIC_API_KEY = "your_key_here"
 ```
-Get a free key at [ai.google.dev/tutorials/setup](https://ai.google.dev/tutorials/setup)
+Get a key at [console.anthropic.com](https://console.anthropic.com)
 
 ### "Dataset not found"
 **Solution:** Run the dataset generator:
@@ -147,12 +147,12 @@ This creates `data/global_retail_sales.csv`
 **Solution:** Enable "Show Dataset Preview" in the sidebar to see available columns
 
 ### API Quota Exceeded
-**Error:** "No valid model found"
-**Cause:** Hit daily API limit (free tier: 15/min, 1M/day)
+**Error:** "API Error: Failed to generate response"
+**Cause:** Hit API rate limit or insufficient credits
 **Solution:**
-- Wait 24 hours or upgrade to paid plan
+- Check your API usage at [console.anthropic.com](https://console.anthropic.com)
+- Add credits to your account
 - Batch simpler queries
-- Consider running during off-peak hours
 
 ### Code contains unsafe operations
 **Cause:** Generated code attempted file I/O or system calls
@@ -164,7 +164,7 @@ This creates `data/global_retail_sales.csv`
 Click "Show Dataset Preview" in the sidebar to see the first 10 rows and verify column names.
 
 ### Generated Code Review
-Expand "View Generated Code" to see the Python code Gemini created (useful for debugging).
+Expand "View Generated Code" to see the Python code Claude created (useful for debugging).
 
 ### Performance
 - First query is slower (model initialization)
@@ -179,7 +179,7 @@ pytest tests/
 ```
 
 ### Modifying System Prompt
-Edit `prompts.py` to change how Gemini generates code:
+Edit `prompts.py` to change how Claude generates code:
 - Add new OLAP operations
 - Change code style (e.g., require Plotly charts for all outputs)
 - Add domain-specific terminology
@@ -195,7 +195,7 @@ Edit `generate_dataset.py` to create custom data:
 ```
 olapppp/
 ├── app.py                          # Main Streamlit app
-├── prompts.py                      # System prompt for Gemini
+├── prompts.py                      # System prompt for Claude
 ├── data_utils.py                   # Data loading utilities
 ├── generate_dataset.py             # Dataset generation script
 ├── requirements.txt                # Python dependencies
@@ -236,7 +236,7 @@ Created as part of Tier 2 Builder curriculum.
 
 ## Support
 
-- **API Key Issues:** See [Google AI Documentation](https://ai.google.dev/docs)
+- **API Key Issues:** See [Anthropic Documentation](https://docs.anthropic.com)
 - **Streamlit Help:** [docs.streamlit.io](https://docs.streamlit.io)
 - **Data Questions:** Check "Show Dataset Preview" in the app
 

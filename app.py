@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import google.generativeai as genai
+import anthropic
 import plotly.express as px
 from data_utils import load_data, get_analytics_summary, get_data_quality_report
 from prompts import SYSTEM_PROMPT
@@ -15,48 +15,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 1. API and Model Configuration
-if "GOOGLE_API_KEY" in st.secrets:
-    api_key = st.secrets["GOOGLE_API_KEY"]
+if "ANTHROPIC_API_KEY" in st.secrets:
+    api_key = st.secrets["ANTHROPIC_API_KEY"]
 else:
-    st.error("Error: GOOGLE_API_KEY not found in .streamlit/secrets.toml")
+    st.error("Error: ANTHROPIC_API_KEY not found in .streamlit/secrets.toml")
     st.stop()
 
-genai.configure(api_key=api_key)
-
-@st.cache_resource
-def get_working_model():
-    """Finds an available model to avoid 404 or Quota errors."""
-    models_to_try = [
-        'gemini-1.5-flash', 
-        'gemini-1.5-flash-latest', 
-        'gemini-pro'
-    ]
-    
-    available_models = []
-    try:
-        available_models = [m.name for m in genai.list_models() 
-                            if 'generateContent' in m.supported_generation_methods]
-    except Exception:
-        pass
-
-    all_possible = models_to_try + available_models
-    
-    for model_name in all_possible:
-        try:
-            test_model = genai.GenerativeModel(model_name)
-            test_model.generate_content("test", generation_config={"max_output_tokens": 1})
-            return test_model
-        except Exception:
-            continue
-            
-    raise Exception("No valid model found. Check your API quota or secrets.toml.")
-
-# Initialize the model
-try:
-    model = get_working_model()
-except Exception as e:
-    st.error(f"Critical Error: {e}")
-    st.stop()
+# Initialize Anthropic client
+client = anthropic.Anthropic(api_key=api_key)
 
 # 2. UI Configuration
 st.set_page_config(page_title="OLAP Assistant", layout="wide", initial_sidebar_state="expanded")
@@ -339,9 +305,9 @@ if db_tab == "Full Database":
             mask = df.astype(str).apply(lambda x: x.str.contains(search_term, case=False)).any(axis=1)
             filtered_df = df[mask]
             st.write(f"Found {len(filtered_df)} matching records")
-            st.dataframe(filtered_df, use_container_width=True)
+            st.dataframe(filtered_df, width='stretch')
         else:
-            st.dataframe(df, use_container_width=True, height=400)
+            st.dataframe(df, width='stretch', height=400)
 
 elif db_tab == "Column Info":
     with st.sidebar.expander("📋 Column Information", expanded=False):
@@ -351,12 +317,12 @@ elif db_tab == "Column Info":
             "Non-Null": df.count().values,
             "Null": df.isnull().sum().values
         })
-        st.dataframe(col_info, use_container_width=True)
+        st.dataframe(col_info, width='stretch')
 
 elif db_tab == "Statistics":
     with st.sidebar.expander("📊 Quick Statistics", expanded=False):
         st.write("**Numeric Columns Summary:**")
-        st.dataframe(df.describe(), use_container_width=True)
+        st.dataframe(df.describe(), width='stretch')
 
 elif db_tab == "Data Quality":
     with st.sidebar.expander("✅ Data Quality Report", expanded=False):
@@ -376,7 +342,7 @@ elif db_tab == "Data Quality":
                     "Missing": missing_data.values()
                 })
                 missing_df["Completeness %"] = (100 - (missing_df["Missing"] / len(df) * 100)).round(1)
-                st.dataframe(missing_df, use_container_width=True, hide_index=True)
+                st.dataframe(missing_df, width='stretch', hide_index=True)
             else:
                 st.success("✅ No missing values detected!")
 
@@ -389,7 +355,7 @@ elif db_tab == "Data Quality":
                     "Column": quality_report["outliers"].keys(),
                     "Outlier Count": quality_report["outliers"].values()
                 })
-                st.dataframe(outlier_df, use_container_width=True, hide_index=True)
+                st.dataframe(outlier_df, width='stretch', hide_index=True)
             else:
                 st.info("ℹ️ No statistical outliers detected (z-score > 3)")
 
@@ -401,7 +367,7 @@ elif db_tab == "Data Quality":
                 "Column": quality_report["type_validation"].keys(),
                 "Type": quality_report["type_validation"].values()
             })
-            st.dataframe(type_df, use_container_width=True, hide_index=True)
+            st.dataframe(type_df, width='stretch', hide_index=True)
 
 # 4. Chat Interface
 # Welcome section when no messages yet
@@ -483,35 +449,41 @@ if user_query:
                 else:
                     is_cache_hit = False
 
-                    full_prompt = f"{SYSTEM_PROMPT}\n\nUser Question: {user_query}"
+                    full_prompt = user_query
 
                     try:
-                        response = model.generate_content(full_prompt)
+                        response = client.messages.create(
+                            model="claude-sonnet-4-20250514",
+                            max_tokens=4096,
+                            system=SYSTEM_PROMPT,
+                            messages=[{"role": "user", "content": full_prompt}]
+                        )
                     except Exception as api_err:
-                        st.error(f"🌐 API Error: Failed to generate response.\n\nIssue: {str(api_err)}\n\nTry:\n- Check your internet connection\n- Verify API quota is available\n- Wait a moment and retry")
+                        st.error(f"🌐 API Error: Failed to generate response.\n\nIssue: {str(api_err)}\n\nTry:\n- Check your internet connection\n- Verify API key is valid\n- Wait a moment and retry")
                         logger.error(f"API call failed: {api_err}")
                         st.stop()
 
                     # Validate API response
-                    if not response or not response.text:
+                    if not response or not response.content:
                         st.error("⚠️ Empty Response: The AI didn't generate any code.\n\nTry:\n- Rephrasing your question\n- Using more specific metrics (revenue, profit)\n- Adding time period (2024, Q4)")
                         st.stop()
 
                     # Extract Python code from markdown code block
-                    code_to_run = response.text.replace("```python", "").replace("```", "").strip()
+                    response_text = response.content[0].text
+                    code_to_run = response_text.replace("```python", "").replace("```", "").strip()
 
                     # Validate that we have code to run
                     if not code_to_run or len(code_to_run) < 10:
                         st.error("⚠️ Invalid Code Generation: AI response doesn't contain valid Python code.\n\nTry:\n- Asking a more specific question\n- Breaking down complex queries\n- Using technical column names")
                         with st.expander("View AI Response"):
-                            st.text(response.text[:500])  # Show first 500 chars
+                            st.text(response_text[:500])  # Show first 500 chars
                         st.stop()
 
                     # Validate code syntax (basic check)
                     if code_to_run.startswith("I ") or code_to_run.startswith("Sorry"):
                         st.error("⚠️ AI did not generate valid code. Try rephrasing your question with more specific details.")
                         with st.expander("View AI Response"):
-                            st.text(response.text)
+                            st.text(response_text)
                         st.stop()
 
                     # Validate code safety (block dangerous imports/functions)
@@ -562,7 +534,7 @@ if user_query:
                                             showlegend=False,
                                             margin=dict(l=0, r=0, t=40, b=0)
                                         )
-                                        st.plotly_chart(auto_chart, use_container_width=True)
+                                        st.plotly_chart(auto_chart, width='stretch')
                                     except:
                                         pass  # Silently fail to not break data display
 
@@ -572,7 +544,7 @@ if user_query:
                         with tab1:
                             # Show row count
                             st.caption(f"📍 {len(value)} rows × {len(value.columns)} columns")
-                            st.dataframe(value, use_container_width=True)
+                            st.dataframe(value, width='stretch')
 
                         with tab2:
                             col1_csv, col2_json, col3_excel = st.columns(3)
@@ -610,7 +582,7 @@ if user_query:
 
                         results_shown = True
                     elif isinstance(value, go.Figure):
-                        st.plotly_chart(value, use_container_width=True)
+                        st.plotly_chart(value, width='stretch')
                         results_shown = True
 
                 if not results_shown:
